@@ -70,7 +70,7 @@ export async function getItemById(id: string) {
 export async function createItem(input: {
   imageUrl: string;
   timeViewed: string;
-  address: string;
+  location: string;
   category: ItemCategory;
 }) {
   return withStore(async (store) => {
@@ -79,7 +79,7 @@ export async function createItem(input: {
       id: crypto.randomUUID(),
       imageUrl: input.imageUrl,
       timeViewed: input.timeViewed,
-      address: input.address,
+      location: input.location,
       category: input.category,
       status: "available",
       createdAt: now,

@@ -2,6 +2,7 @@
 
 import { TermsBox } from "@/components/TermsBox";
 import { PickupDecision } from "@/components/PickupDecision";
+import { getMapUrl } from "@/lib/location";
 import { Elements, CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Link from "next/link";
@@ -17,7 +18,7 @@ function UnlockForm({ itemId }: { itemId: string }) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [address, setAddress] = useState<string | null>(null);
+  const [location, setLocation] = useState<string | null>(null);
   const [reservationId, setReservationId] = useState<string | null>(null);
 
   const unlock = async () => {
@@ -84,15 +85,15 @@ function UnlockForm({ itemId }: { itemId: string }) {
 
       const reservationData = (await reservationResponse.json()) as {
         reservationId?: string;
-        address?: string;
+        location?: string;
         error?: string;
       };
 
-      if (!reservationResponse.ok || !reservationData.address || !reservationData.reservationId) {
+      if (!reservationResponse.ok || !reservationData.location || !reservationData.reservationId) {
         throw new Error(reservationData.error ?? "Unable to lock item.");
       }
 
-      setAddress(reservationData.address);
+      setLocation(reservationData.location);
       setReservationId(reservationData.reservationId);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Unable to unlock location.";
@@ -114,7 +115,7 @@ function UnlockForm({ itemId }: { itemId: string }) {
         <span>I agree to the Terms of Use/Disclaimer.</span>
       </label>
 
-      {!address ? (
+      {!location ? (
         <div className="space-y-3 rounded-lg border border-gray-300 p-4">
           <p className="text-sm text-gray-700">
             Enter card details to place a $5.00 authorization hold.
@@ -137,7 +138,10 @@ function UnlockForm({ itemId }: { itemId: string }) {
         <div className="space-y-4 rounded-lg border border-gray-300 p-4">
           <p className="text-sm font-medium text-green-700">Spot locked. Other users can no longer claim this item.</p>
           <p className="text-sm">
-            <span className="font-semibold">Exact Address:</span> {address}
+            <span className="font-semibold">GPS Map Location:</span>{" "}
+            <a href={getMapUrl(location)} target="_blank" rel="noreferrer" className="underline">
+              Open map
+            </a>
           </p>
           {reservationId ? (
             <p className="text-sm">

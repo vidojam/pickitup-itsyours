@@ -38,10 +38,10 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const file = form.get("photo");
   const timeViewed = form.get("timeViewed");
-  const address = form.get("address");
+  const location = form.get("location");
   const category = form.get("category");
 
-  if (!(file instanceof File) || typeof timeViewed !== "string" || typeof address !== "string" || typeof category !== "string") {
+  if (!(file instanceof File) || typeof timeViewed !== "string" || typeof location !== "string" || typeof category !== "string") {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   const item = await createItem({
     imageUrl,
     timeViewed,
-    address,
+    location,
     category: category as ItemCategory,
   });
 

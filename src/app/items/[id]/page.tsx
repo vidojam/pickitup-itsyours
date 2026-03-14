@@ -35,7 +35,7 @@ export default async function ItemDetailPage({
           <h1 className="text-2xl font-bold">{item.category}</h1>
           <p className="text-sm text-gray-700">Time Viewed: {item.timeViewed}</p>
           <p className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-3 text-sm">
-            Exact Address: {canUnlock ? "[Hidden until authorization]" : "No longer available"}
+            Exact GPS Map Location: {canUnlock ? "[Hidden until authorization]" : "No longer available"}
           </p>
           {!canUnlock ? (
             <p className="rounded-md border border-gray-300 p-3 text-sm">

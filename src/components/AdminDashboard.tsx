@@ -1,13 +1,16 @@
 "use client";
 
 import { Item } from "@/lib/types";
-import { FormEvent, useEffect, useState } from "react";
+import { getItemLocation, getMapUrl } from "@/lib/location";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 export function AdminDashboard() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
+  const [locationStatus, setLocationStatus] = useState<string | null>(null);
 
   const loadItems = async () => {
     const response = await fetch("/api/admin/items", { cache: "no-store" });
@@ -27,6 +30,48 @@ export function AdminDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
+  const captureGpsLocation = async () => {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      throw new Error("This device does not support GPS location capture.");
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolve(`${latitude},${longitude}`);
+        },
+        () => {
+          reject(new Error("Unable to capture GPS location. Allow location access and try again."));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        },
+      );
+    });
+  };
+
+  const onPhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.length) {
+      return;
+    }
+
+    setError(null);
+    setLocationStatus("Capturing GPS location...");
+
+    try {
+      const gps = await captureGpsLocation();
+      setLocation(gps);
+      setLocationStatus("GPS location captured from your device.");
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Unable to capture GPS location.";
+      setLocationStatus(message);
+      setError(message);
+    }
+  };
+
   const onPublish = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitting(true);
@@ -45,6 +90,8 @@ export function AdminDashboard() {
       }
 
       event.currentTarget.reset();
+      setLocation("");
+      setLocationStatus(null);
       await loadItems();
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Unable to publish item.";
@@ -72,15 +119,35 @@ export function AdminDashboard() {
         <h2 className="text-lg font-semibold">Publish New Listing</h2>
         <div>
           <label className="mb-1 block text-sm font-medium">Photo Upload</label>
-          <input name="photo" type="file" accept="image/*" required className="w-full rounded-md border border-gray-300 p-2" />
+          <input
+            name="photo"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            required
+            onChange={onPhotoChange}
+            className="w-full rounded-md border border-gray-300 p-2"
+          />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Time Viewed</label>
           <input name="timeViewed" type="datetime-local" required className="w-full rounded-md border border-gray-300 p-2" />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Exact GPS Location / Address</label>
-          <input name="address" type="text" required className="w-full rounded-md border border-gray-300 p-2" />
+          <label className="mb-1 block text-sm font-medium">GPS Map Location</label>
+          <input
+            name="location"
+            type="text"
+            required
+            placeholder="Coordinates, pin share link, or map URL"
+            value={location}
+            onChange={(event) => setLocation(event.target.value)}
+            className="w-full rounded-md border border-gray-300 p-2"
+          />
+          <p className="mt-1 text-xs text-gray-600">
+            Taking a photo on your phone auto-fills GPS. You can still edit it if needed.
+          </p>
+          {locationStatus ? <p className="mt-1 text-xs text-gray-700">{locationStatus}</p> : null}
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Category</label>
@@ -105,7 +172,12 @@ export function AdminDashboard() {
             <article key={item.id} className="rounded-lg border border-gray-200 p-3">
               <p className="text-sm font-medium">{item.category} · {item.status}</p>
               <p className="text-xs text-gray-600">Time Viewed: {item.timeViewed}</p>
-              <p className="text-xs text-gray-600">Address: {item.address}</p>
+              <p className="text-xs text-gray-600">
+                Map Location:{" "}
+                <a href={getMapUrl(getItemLocation(item))} target="_blank" rel="noreferrer" className="underline">
+                  Open map
+                </a>
+              </p>
             </article>
           ))}
           {!loading && items.length === 0 ? (

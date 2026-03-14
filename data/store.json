@@ -4,7 +4,7 @@
       "id": "demo-item-1",
       "imageUrl": "/next.svg",
       "timeViewed": "2026-03-03T10:30",
-      "address": "123 Test St, Test City",
+      "location": "https://maps.google.com/?q=37.7749,-122.4194",
       "category": "Furniture",
       "status": "available",
       "createdAt": "2026-03-03T15:20:00.000Z",

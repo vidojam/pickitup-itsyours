@@ -6,7 +6,8 @@ export interface Item {
   id: string;
   imageUrl: string;
   timeViewed: string;
-  address: string;
+  location: string;
+  address?: string;
   category: ItemCategory;
   status: ItemStatus;
   createdAt: string;

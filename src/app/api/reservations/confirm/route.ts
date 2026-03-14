@@ -38,6 +38,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     reservationId: created.reservation.id,
-    address: created.item.address,
+    location: created.item.location ?? created.item.address,
   });
 }

@@ -1,4 +1,5 @@
 import { PickupDecision } from "@/components/PickupDecision";
+import { getItemLocation, getMapUrl } from "@/lib/location";
 import { getReservationDetails } from "@/lib/store";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,8 +23,15 @@ export default async function PickupPage({
       </Link>
       <h1 className="text-2xl font-bold">Pickup Decision</h1>
       <section className="space-y-2 rounded-lg border border-gray-300 p-4">
-        <p className="text-sm font-medium">Address:</p>
-        <p className="text-sm">{details.item.address}</p>
+        <p className="text-sm font-medium">GPS Map Location:</p>
+        <a
+          href={getMapUrl(getItemLocation(details.item))}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm underline"
+        >
+          Open map
+        </a>
         <p className="text-sm text-gray-700">Current hold status: {details.reservation.status}</p>
       </section>
       {details.reservation.status === "authorized" ? (
