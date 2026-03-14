@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PickItUp-ItsYours
 
-## Getting Started
+Mobile-responsive PWA for curbside item listings with:
 
-First, run the development server:
+- Private admin CMS for posting items
+- Real-time inventory state updates
+- Stripe PaymentIntent authorization-only workflow (`$5.00` hold)
+- Charge only when user confirms pickup
+- Mandatory legal disclaimer in footer and checkout
+
+## Environment Setup
+
+1. Copy `.env.example` to `.env.local`.
+2. Fill in values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+ADMIN_PASSWORD=your_admin_password
+ADMIN_SESSION_SECRET=long_random_secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `http://localhost:3000`.
 
-## Learn More
+## App Routes
 
-To learn more about Next.js, take a look at the following resources:
+- `/` Landing page with exact marketing copy and CTA
+- `/items` Available item grid (real-time inventory refresh)
+- `/items/[id]` Item detail with hidden address + Stripe authorization
+- `/pickup/[reservationId]` On-site decision page (charge or release)
+- `/admin/login` Private admin login
+- `/admin` Admin CMS to upload photo, set time viewed, address, category, publish
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stripe Workflow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Buyer checks Terms box.
+2. Buyer clicks **Unlock Location for $5 (You won't be charged yet).**
+3. Stripe creates PaymentIntent with manual capture and confirms card authorization.
+4. Item is set to `pending` immediately and removed from public availability.
+5. Buyer chooses on-site decision:
+	- `I picked it up. Charge me $5.00.` → PaymentIntent captured.
+	- `Item was not here. Release the hold.` → PaymentIntent canceled.
 
-## Deploy on Vercel
+## Data Storage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- JSON store at `data/store.json` (items + reservations)
+- Uploaded images stored under `public/uploads`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Build Validation
+
+```bash
+npm run lint
+npm run build
+```
+
+Both pass in this workspace.
