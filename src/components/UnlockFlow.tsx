@@ -1,5 +1,6 @@
 "use client";
 
+import { formatOfferAmount } from "@/lib/constants";
 import { TermsBox } from "@/components/TermsBox";
 import { PickupDecision } from "@/components/PickupDecision";
 import { getMapUrl } from "@/lib/location";
@@ -12,7 +13,7 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-function UnlockForm({ itemId }: { itemId: string }) {
+function UnlockForm({ itemId, offerAmount }: { itemId: string; offerAmount: number }) {
   const stripe = useStripe();
   const elements = useElements();
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -118,7 +119,7 @@ function UnlockForm({ itemId }: { itemId: string }) {
       {!location ? (
         <div className="space-y-3 rounded-lg border border-gray-300 p-4">
           <p className="text-sm text-gray-700">
-            Enter card details to place a $5.00 authorization hold.
+            Enter card details to place an authorization hold for {formatOfferAmount(offerAmount)} and reveal the pickup location.
           </p>
           <div className="rounded-md border border-gray-300 p-3">
             <CardElement />
@@ -131,14 +132,14 @@ function UnlockForm({ itemId }: { itemId: string }) {
           >
             {loading
               ? "Authorizing..."
-              : "Unlock Location for $5 (You won't be charged yet)."}
+              : `Unlock Location for ${formatOfferAmount(offerAmount)} (You won't be charged yet).`}
           </button>
         </div>
       ) : (
         <div className="space-y-4 rounded-lg border border-gray-300 p-4">
           <p className="text-sm font-medium text-green-700">Spot locked. Other users can no longer claim this item.</p>
           <p className="text-sm">
-            <span className="font-semibold">GPS Map Location:</span>{" "}
+            <span className="font-semibold">Pickup Location:</span>{" "}
             <a href={getMapUrl(location)} target="_blank" rel="noreferrer" className="underline">
               Open map
             </a>
@@ -151,7 +152,7 @@ function UnlockForm({ itemId }: { itemId: string }) {
               </Link>
             </p>
           ) : null}
-          {reservationId ? <PickupDecision reservationId={reservationId} /> : null}
+          {reservationId ? <PickupDecision reservationId={reservationId} amount={offerAmount} /> : null}
         </div>
       )}
 
@@ -160,7 +161,7 @@ function UnlockForm({ itemId }: { itemId: string }) {
   );
 }
 
-export function UnlockFlow({ itemId }: { itemId: string }) {
+export function UnlockFlow({ itemId, offerAmount }: { itemId: string; offerAmount: number }) {
   if (!stripePromise) {
     return (
       <p className="rounded-lg border border-gray-300 p-4 text-sm text-red-600">
@@ -171,7 +172,7 @@ export function UnlockFlow({ itemId }: { itemId: string }) {
 
   return (
     <Elements stripe={stripePromise}>
-      <UnlockForm itemId={itemId} />
+      <UnlockForm itemId={itemId} offerAmount={offerAmount} />
     </Elements>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
+import { formatOfferAmount } from "@/lib/constants";
 import Link from "next/link";
 import { useState } from "react";
 
-export function PickupDecision({ reservationId }: { reservationId: string }) {
+export function PickupDecision({ reservationId, amount }: { reservationId: string; amount: number }) {
   const [selection, setSelection] = useState<"picked" | "missing" | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export function PickupDecision({ reservationId }: { reservationId: string }) {
 
       setResult(
         selection === "picked"
-          ? "Success. Your card has been charged $5.00."
+          ? `Success. Your card has been charged ${formatOfferAmount(amount)}.`
           : "Hold released. You were not charged.",
       );
     } catch (caught) {
@@ -54,7 +55,7 @@ export function PickupDecision({ reservationId }: { reservationId: string }) {
           checked={selection === "picked"}
           onChange={() => setSelection(selection === "picked" ? "" : "picked")}
         />
-        <span>I picked it up. Charge me $5.00.</span>
+        <span>I picked it up. Charge me {formatOfferAmount(amount)}.</span>
       </label>
       <label className="flex items-start gap-2 text-sm">
         <input

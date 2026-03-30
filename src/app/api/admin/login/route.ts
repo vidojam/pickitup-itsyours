@@ -1,10 +1,10 @@
-import { getAdminToken, verifyAdminPassword } from "@/lib/admin-auth";
+import { getAdminToken, verifyAdminCredentials } from "@/lib/admin-auth";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as { password?: string };
+  const body = (await request.json()) as { username?: string; password?: string };
 
-  if (!body.password || !verifyAdminPassword(body.password)) {
+  if (!body.username || !body.password || !verifyAdminCredentials(body.username, body.password)) {
     return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
   }
 

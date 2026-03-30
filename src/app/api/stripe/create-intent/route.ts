@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   const intent = await getStripe().paymentIntents.create({
-    amount: 500,
+    amount: item.offerAmount,
     currency: "usd",
     capture_method: "manual",
     payment_method_types: ["card"],

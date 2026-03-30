@@ -1,6 +1,7 @@
+import { formatOfferAmount } from "@/lib/constants";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
 import { UnlockFlow } from "@/components/UnlockFlow";
 import { getItemById } from "@/lib/store";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -24,25 +25,20 @@ export default async function ItemDetailPage({
         Back to Available Items
       </Link>
       <div className="grid gap-6 md:grid-cols-2">
-        <Image
-          src={item.imageUrl}
-          alt={`${item.category} item`}
-          width={900}
-          height={700}
-          className="h-72 w-full rounded-lg border border-gray-300 object-cover"
-        />
+        <ItemImageCarousel itemLabel="Curbside item" imageUrls={item.imageUrls} />
         <section className="space-y-4">
-          <h1 className="text-2xl font-bold">{item.category}</h1>
+          <h1 className="text-2xl font-bold">Sidewalk Item</h1>
+          <p className="text-base font-medium text-gray-900">Offer: {formatOfferAmount(item.offerAmount)}</p>
           <p className="text-sm text-gray-700">Time Viewed: {item.timeViewed}</p>
           <p className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-3 text-sm">
-            Exact GPS Map Location: {canUnlock ? "[Hidden until authorization]" : "No longer available"}
+            Pickup Location: {canUnlock ? "[Hidden until $5.00 authorization succeeds]" : "No longer available"}
           </p>
           {!canUnlock ? (
             <p className="rounded-md border border-gray-300 p-3 text-sm">
               This item is currently {item.status} and cannot be unlocked.
             </p>
           ) : (
-            <UnlockFlow itemId={item.id} />
+            <UnlockFlow itemId={item.id} offerAmount={item.offerAmount} />
           )}
         </section>
       </div>

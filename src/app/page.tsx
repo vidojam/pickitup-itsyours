@@ -5,7 +5,7 @@ export default function Home() {
     <main className="mx-auto flex min-h-[70vh] w-full max-w-4xl flex-col justify-center space-y-6 px-4 py-12 sm:px-6 lg:px-8">
       <p className="text-sm font-medium uppercase tracking-wide text-gray-600">Curbside Gold</p>
       <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
-        You can pick it up, for only $5.00.
+        You can pick it up for only $5.00.
       </h1>
       <div className="space-y-2 text-base text-gray-700">
         <p>These are items being thrown out as garbage, but we know it&apos;s not garbage to some.</p>

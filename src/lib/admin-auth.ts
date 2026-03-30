@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 
 export const ADMIN_COOKIE = "pickitup_admin";
 
+export const DEFAULT_ADMIN_USERNAME = "admin";
+
 function getSessionSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (!secret) {
@@ -20,6 +22,14 @@ export function verifyAdminPassword(password: string) {
     throw new Error("Missing ADMIN_PASSWORD environment variable.");
   }
   return password === expected;
+}
+
+export function getAdminUsername() {
+  return process.env.ADMIN_USERNAME ?? DEFAULT_ADMIN_USERNAME;
+}
+
+export function verifyAdminCredentials(username: string, password: string) {
+  return username === getAdminUsername() && verifyAdminPassword(password);
 }
 
 export function getAdminToken() {

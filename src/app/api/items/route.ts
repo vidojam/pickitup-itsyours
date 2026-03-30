@@ -1,8 +1,16 @@
 import { listItems } from "@/lib/store";
-import { ItemStatus } from "@/lib/types";
+import { Item, ItemStatus } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 const ALLOWED_STATUSES: ItemStatus[] = ["available", "pending", "completed", "missing"];
+
+function redactProtectedFields(item: Item): Item {
+  return {
+    ...item,
+    location: "",
+    address: undefined,
+  };
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,5 +21,5 @@ export async function GET(request: Request) {
   }
 
   const items = await listItems(status ?? undefined);
-  return NextResponse.json({ items });
+  return NextResponse.json({ items: items.map((item) => redactProtectedFields(item)) });
 }

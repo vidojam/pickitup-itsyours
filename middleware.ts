@@ -4,7 +4,7 @@ import { getAdminToken } from "@/lib/admin-auth";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/admin/login")) {
+  if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/mobile-login")) {
     return NextResponse.next();
   }
 

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -12,15 +12,84 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+a,
+label,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+li,
+dt,
+dd,
+button,
+input,
+select,
+textarea {
+  color: #ffffff;
+}
+
+input,
+select,
+textarea,
+button {
+  background: #000000;
+  border-color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #d4d4d4;
+}
+
+:where(
+  .text-gray-500,
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-900,
+  .text-red-600,
+  .text-green-700,
+  .text-black
+) {
+  color: #ffffff !important;
+}
+
+:where(
+  .bg-white,
+  .bg-gray-50
+) {
+  background: #000000 !important;
+}
+
+:where(
+  .border-gray-200,
+  .border-gray-300,
+  .border-dashed
+) {
+  border-color: #ffffff !important;
+}
+
+@keyframes carousel-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.carousel-fade {
+  animation: carousel-fade-in 180ms ease-out;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatOfferAmount } from "@/lib/constants";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -59,15 +60,16 @@ export function ItemsFeed() {
       {items.map((item) => (
         <article key={item.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
           <Image
-            src={item.imageUrl}
-            alt={`${item.category} curbside item`}
+            src={item.imageUrls[0]}
+            alt="Curbside item photo"
             width={600}
             height={300}
             className="h-48 w-full object-cover"
           />
           <div className="space-y-2 p-4">
-            <p className="text-sm font-medium">{item.category}</p>
+            <p className="text-sm text-gray-700">Offer: {formatOfferAmount(item.offerAmount)}</p>
             <p className="text-xs text-gray-600">Time Viewed: {item.timeViewed}</p>
+            <p className="text-xs text-gray-600">{item.imageUrls.length} photo{item.imageUrls.length === 1 ? "" : "s"}</p>
             <Link
               href={`/items/${item.id}`}
               className="inline-flex rounded-md bg-black px-3 py-2 text-sm font-medium text-white"

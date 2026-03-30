@@ -3,3 +3,14 @@ By using this site, you acknowledge that all items listed are considered discard
 We are a listing service only. We are not responsible for the condition, safety, or legality of any item listed.
 You assume full responsibility for inspecting, transporting, and using any item you pick up.
 We are NOT responsible for any damages, injuries, losses, or occurrences that happen during or after the pickup of any item. `;
+
+export const OFFER_AMOUNTS = [500] as const;
+
+export const DEFAULT_OFFER_AMOUNT = OFFER_AMOUNTS[0];
+
+export function formatOfferAmount(amount: number) {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
+	}).format(amount / 100);
+}

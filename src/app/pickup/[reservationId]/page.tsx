@@ -1,4 +1,5 @@
 import { PickupDecision } from "@/components/PickupDecision";
+import { formatOfferAmount } from "@/lib/constants";
 import { getItemLocation, getMapUrl } from "@/lib/location";
 import { getReservationDetails } from "@/lib/store";
 import Link from "next/link";
@@ -23,7 +24,7 @@ export default async function PickupPage({
       </Link>
       <h1 className="text-2xl font-bold">Pickup Decision</h1>
       <section className="space-y-2 rounded-lg border border-gray-300 p-4">
-        <p className="text-sm font-medium">GPS Map Location:</p>
+        <p className="text-sm font-medium">Pickup Location:</p>
         <a
           href={getMapUrl(getItemLocation(details.item))}
           target="_blank"
@@ -35,7 +36,10 @@ export default async function PickupPage({
         <p className="text-sm text-gray-700">Current hold status: {details.reservation.status}</p>
       </section>
       {details.reservation.status === "authorized" ? (
-        <PickupDecision reservationId={reservationId} />
+        <div className="space-y-3">
+          <p className="text-sm text-gray-700">If you pick it up, you will be charged {formatOfferAmount(details.reservation.amount)}.</p>
+          <PickupDecision reservationId={reservationId} amount={details.reservation.amount} />
+        </div>
       ) : (
         <p className="rounded-lg border border-gray-300 p-4 text-sm">
           This reservation is already finalized with status: {details.reservation.status}.

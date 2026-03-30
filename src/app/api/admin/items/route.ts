@@ -1,4 +1,5 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { OFFER_AMOUNTS } from "@/lib/constants";
 import { createItem, listItems } from "@/lib/store";
 import { ItemCategory } from "@/lib/types";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -36,12 +37,24 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
-  const file = form.get("photo");
+  const files = form
+    .getAll("photos")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
   const timeViewed = form.get("timeViewed");
   const location = form.get("location");
   const category = form.get("category");
+  const offerAmountValue = form.get("offerAmount");
 
-  if (!(file instanceof File) || typeof timeViewed !== "string" || typeof location !== "string" || typeof category !== "string") {
+  const offerAmount = typeof offerAmountValue === "string" ? Number(offerAmountValue) : NaN;
+
+  if (
+    files.length < 1 ||
+    files.length > 3 ||
+    typeof timeViewed !== "string" ||
+    typeof location !== "string" ||
+    typeof category !== "string" ||
+    !OFFER_AMOUNTS.includes(offerAmount as (typeof OFFER_AMOUNTS)[number])
+  ) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
 
@@ -49,9 +62,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
   }
 
-  const imageUrl = await savePhoto(file);
+  const imageUrls = await Promise.all(files.map((file) => savePhoto(file)));
   const item = await createItem({
-    imageUrl,
+    imageUrls,
+    offerAmount,
     timeViewed,
     location,
     category: category as ItemCategory,

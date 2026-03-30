@@ -4,7 +4,8 @@ export type ItemStatus = "available" | "pending" | "completed" | "missing";
 
 export interface Item {
   id: string;
-  imageUrl: string;
+  imageUrls: string[];
+  offerAmount: number;
   timeViewed: string;
   location: string;
   address?: string;

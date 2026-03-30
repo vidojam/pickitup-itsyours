@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { emitInventoryChange } from "@/lib/inventory-events";
+import { DEFAULT_OFFER_AMOUNT } from "@/lib/constants";
 import { AppStore, Item, ItemCategory, Reservation } from "@/lib/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -12,6 +13,36 @@ const EMPTY_STORE: AppStore = {
 };
 
 let queue: Promise<void> = Promise.resolve();
+
+function normalizeItem(item: unknown): Item {
+  const rawItem = item as Record<string, unknown>;
+  const imageUrls = Array.isArray(rawItem.imageUrls)
+    ? rawItem.imageUrls.filter((entry): entry is string => typeof entry === "string" && entry.length > 0)
+    : typeof rawItem.imageUrl === "string" && rawItem.imageUrl.length > 0
+      ? [rawItem.imageUrl]
+      : [];
+
+  return {
+    id: typeof rawItem.id === "string" ? rawItem.id : crypto.randomUUID(),
+    imageUrls,
+    offerAmount: typeof rawItem.offerAmount === "number" ? rawItem.offerAmount : DEFAULT_OFFER_AMOUNT,
+    timeViewed: typeof rawItem.timeViewed === "string" ? rawItem.timeViewed : "",
+    location: typeof rawItem.location === "string" ? rawItem.location : "",
+    address: typeof rawItem.address === "string" ? rawItem.address : undefined,
+    category: rawItem.category as ItemCategory,
+    status: rawItem.status as Item["status"],
+    createdAt: typeof rawItem.createdAt === "string" ? rawItem.createdAt : new Date().toISOString(),
+    updatedAt: typeof rawItem.updatedAt === "string" ? rawItem.updatedAt : new Date().toISOString(),
+    activeReservationId: typeof rawItem.activeReservationId === "string" ? rawItem.activeReservationId : undefined,
+  };
+}
+
+function normalizeStore(store: AppStore): AppStore {
+  return {
+    items: Array.isArray(store.items) ? store.items.map((item) => normalizeItem(item)) : [],
+    reservations: Array.isArray(store.reservations) ? store.reservations : [],
+  };
+}
 
 async function ensureStoreFile() {
   await mkdir(DATA_DIR, { recursive: true });
@@ -25,7 +56,7 @@ async function ensureStoreFile() {
 export async function readStore(): Promise<AppStore> {
   await ensureStoreFile();
   const raw = await readFile(DATA_FILE, "utf8");
-  return JSON.parse(raw) as AppStore;
+  return normalizeStore(JSON.parse(raw) as AppStore);
 }
 
 async function writeStore(store: AppStore) {
@@ -68,7 +99,8 @@ export async function getItemById(id: string) {
 }
 
 export async function createItem(input: {
-  imageUrl: string;
+  imageUrls: string[];
+  offerAmount: number;
   timeViewed: string;
   location: string;
   category: ItemCategory;
@@ -77,7 +109,8 @@ export async function createItem(input: {
     const now = new Date().toISOString();
     const item: Item = {
       id: crypto.randomUUID(),
-      imageUrl: input.imageUrl,
+      imageUrls: input.imageUrls,
+      offerAmount: input.offerAmount,
       timeViewed: input.timeViewed,
       location: input.location,
       category: input.category,
