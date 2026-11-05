@@ -5,7 +5,7 @@ import { Item } from "@/lib/types";
 import { getItemLocation, getMapUrl } from "@/lib/location";
 import Image from "next/image";
 import QRCode from "qrcode";
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 const PHOTO_SLOT_COUNT = 3;
 
@@ -28,17 +28,29 @@ export function AdminDashboard() {
   const [location, setLocation] = useState("");
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [photoPreviews, setPhotoPreviews] = useState<(string | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
-  const [selectedFiles, setSelectedFiles] = useState<(File | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
+  const [uploadedPhotoUrls, setUploadedPhotoUrls] = useState<(string | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
+  const [uploadingSlots, setUploadingSlots] = useState<boolean[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => false));
   const photoInputRefs = useRef<Array<HTMLInputElement | null>>(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
+  const uploadSequenceRef = useRef<number[]>(Array.from({ length: PHOTO_SLOT_COUNT }, () => 0));
 
-  const loadItems = async () => {
+  const redirectToLogin = () => {
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
+    }
+  };
+
+  const loadItems = useCallback(async () => {
     const response = await fetch("/api/admin/items", { cache: "no-store" });
+    if (response.status === 401) {
+      redirectToLogin();
+      return;
+    }
     if (!response.ok) {
       throw new Error("Unable to load admin inventory.");
     }
     const data = (await response.json()) as { items: Item[] };
     setItems(data.items ?? []);
-  };
+  }, []);
 
   useEffect(() => {
     loadItems()
@@ -47,7 +59,7 @@ export function AdminDashboard() {
         setError(message);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [loadItems]);
 
   useEffect(() => {
     if (!mobileLink) {
@@ -100,6 +112,44 @@ export function AdminDashboard() {
     });
   };
 
+  const setUploadingForSlot = (slotIndex: number, isUploading: boolean) => {
+    setUploadingSlots((current) => {
+      const next = [...current];
+      next[slotIndex] = isUploading;
+      return next;
+    });
+  };
+
+  const setUploadedUrlForSlot = (slotIndex: number, url: string | null) => {
+    setUploadedPhotoUrls((current) => {
+      const next = [...current];
+      next[slotIndex] = url;
+      return next;
+    });
+  };
+
+  const uploadPhoto = async (file: File) => {
+    const form = new FormData();
+    form.append("photo", file);
+
+    const response = await fetch("/api/admin/uploads", {
+      method: "POST",
+      body: form,
+    });
+
+    if (response.status === 401) {
+      redirectToLogin();
+      throw new Error("Unauthorized");
+    }
+
+    const data = (await response.json()) as { url?: string; error?: string };
+    if (!response.ok || !data.url) {
+      throw new Error(data.error ?? "Unable to upload photo.");
+    }
+
+    return data.url;
+  };
+
   const resetPreviews = () => {
     setPhotoPreviews((current) => {
       for (const preview of current) {
@@ -110,7 +160,8 @@ export function AdminDashboard() {
 
       return Array.from({ length: PHOTO_SLOT_COUNT }, () => null);
     });
-    setSelectedFiles(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
+    setUploadedPhotoUrls(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
+    setUploadingSlots(Array.from({ length: PHOTO_SLOT_COUNT }, () => false));
 
     for (const input of photoInputRefs.current) {
       if (input) {
@@ -121,11 +172,8 @@ export function AdminDashboard() {
 
   const removePhoto = (slotIndex: number) => {
     setPreviewForSlot(slotIndex, null);
-    setSelectedFiles((current) => {
-      const next = [...current];
-      next[slotIndex] = null;
-      return next;
-    });
+    setUploadedUrlForSlot(slotIndex, null);
+    setUploadingForSlot(slotIndex, false);
 
     const input = photoInputRefs.current[slotIndex];
     if (input) {
@@ -168,21 +216,39 @@ export function AdminDashboard() {
 
     if (!file) {
       setPreviewForSlot(slotIndex, null);
-      setSelectedFiles((current) => {
-        const next = [...current];
-        next[slotIndex] = null;
-        return next;
-      });
+      setUploadedUrlForSlot(slotIndex, null);
+      setUploadingForSlot(slotIndex, false);
       return;
     }
 
-    setPreviewForSlot(slotIndex, URL.createObjectURL(file));
-    setSelectedFiles((current) => {
-      const next = [...current];
-      next[slotIndex] = file;
-      return next;
-    });
+    const localPreview = URL.createObjectURL(file);
+    setPreviewForSlot(slotIndex, localPreview);
+    setUploadedUrlForSlot(slotIndex, null);
+    setUploadingForSlot(slotIndex, true);
     setError(null);
+
+    uploadSequenceRef.current[slotIndex] += 1;
+    const requestId = uploadSequenceRef.current[slotIndex];
+
+    try {
+      const uploadedUrl = await uploadPhoto(file);
+      if (uploadSequenceRef.current[slotIndex] !== requestId) {
+        return;
+      }
+      setUploadedUrlForSlot(slotIndex, uploadedUrl);
+      setPreviewForSlot(slotIndex, uploadedUrl);
+    } catch (caught) {
+      if (uploadSequenceRef.current[slotIndex] === requestId) {
+        const message = caught instanceof Error ? caught.message : "Unable to upload photo.";
+        if (message !== "Unauthorized") {
+          setError(message);
+        }
+      }
+    } finally {
+      if (uploadSequenceRef.current[slotIndex] === requestId) {
+        setUploadingForSlot(slotIndex, false);
+      }
+    }
 
     if (location.trim()) {
       return;
@@ -206,7 +272,9 @@ export function AdminDashboard() {
     }
 
     setPhotoPreviews((current) => reorderArray(current, fromIndex, toIndex));
-    setSelectedFiles((current) => reorderArray(current, fromIndex, toIndex));
+    setUploadedPhotoUrls((current) => reorderArray(current, fromIndex, toIndex));
+    setUploadingSlots((current) => reorderArray(current, fromIndex, toIndex));
+    uploadSequenceRef.current = reorderArray(uploadSequenceRef.current, fromIndex, toIndex);
 
     // File inputs cannot be programmatically assigned files, so clear them after reorder.
     for (const input of photoInputRefs.current) {
@@ -222,21 +290,31 @@ export function AdminDashboard() {
     setError(null);
 
     try {
-      const filesToUpload = selectedFiles.filter((entry): entry is File => entry instanceof File);
-      if (!filesToUpload.length) {
+      if (uploadingSlots.some(Boolean)) {
+        throw new Error("Wait for photo uploads to finish before publishing.");
+      }
+
+      const uploadedUrls = uploadedPhotoUrls.filter((entry): entry is string => typeof entry === "string");
+      if (!uploadedUrls.length) {
         throw new Error("Select at least 1 photo before publishing.");
       }
 
       const form = new FormData(event.currentTarget);
       form.delete("photos");
-      for (const file of filesToUpload) {
-        form.append("photos", file);
+      form.delete("imageUrls");
+      for (const url of uploadedUrls) {
+        form.append("imageUrls", url);
       }
 
       const response = await fetch("/api/admin/items", {
         method: "POST",
         body: form,
       });
+
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
 
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
@@ -267,6 +345,10 @@ export function AdminDashboard() {
 
     try {
       const response = await fetch("/api/admin/mobile-link", { method: "POST" });
+      if (response.status === 401) {
+        redirectToLogin();
+        return;
+      }
       const data = (await response.json()) as { url?: string; expiresAt?: string; error?: string };
 
       if (!response.ok || !data.url || !data.expiresAt) {
@@ -392,6 +474,8 @@ export function AdminDashboard() {
                   {preview ? `Replace Photo ${index + 1}` : `Take or Choose Photo ${index + 1}`}
                 </button>
                 <p className="text-xs text-gray-600">Tap the button to open the camera or photo library.</p>
+                {uploadingSlots[index] ? <p className="text-xs text-blue-700">Uploading photo...</p> : null}
+                {!uploadingSlots[index] && uploadedPhotoUrls[index] ? <p className="text-xs text-green-700">Uploaded</p> : null}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
