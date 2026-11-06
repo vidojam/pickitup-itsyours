@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PickItUp — UI Theme Options</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #e8e8ec; padding: 32px 16px; }
+  .page-title { text-align: center; font-size: 28px; margin-bottom: 8px; color: #1a1a1a; }
+  .page-sub { text-align: center; color: #555; margin-bottom: 40px; }
+  .theme { max-width: 960px; margin: 0 auto 56px; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
+  .theme-label { padding: 14px 24px; font-weight: 700; font-size: 15px; background: #1a1a1a; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .theme-label small { font-weight: 400; opacity: .75; }
+  .mock { padding: 40px 32px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  .hero h2 { font-size: 32px; line-height: 1.15; margin-bottom: 12px; }
+  .hero p { font-size: 15px; line-height: 1.6; max-width: 560px; }
+  .btn { display: inline-block; margin-top: 20px; padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 32px; }
+  .card { border-radius: 12px; overflow: hidden; }
+  .card .img { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .card .body { padding: 16px; }
+  .card h3 { font-size: 16px; margin-bottom: 4px; }
+  .card .meta { font-size: 13px; margin-bottom: 10px; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .card .btn { margin-top: 10px; padding: 8px 14px; font-size: 13px; width: 100%; text-align: center; }
+
+  /* ── 1. Clean Market (light minimal) ── */
+  .t1 .mock { background: #ffffff; color: #111827; }
+  .t1 .eyebrow { color: #6b7280; }
+  .t1 .hero p { color: #4b5563; }
+  .t1 .btn { background: #111827; color: #fff; }
+  .t1 .card { background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .t1 .img { background: #f3f4f6; }
+  .t1 .meta { color: #6b7280; }
+  .t1 .pill { background: #dcfce7; color: #15803d; }
+
+  /* ── 2. Warm Curbside (earthy craft) ── */
+  .t2 .mock { background: #faf6f0; color: #3f2d20; }
+  .t2 .eyebrow { color: #b45309; }
+  .t2 .hero p { color: #6b5744; }
+  .t2 .btn { background: #c2590b; color: #fff; border-radius: 999px; }
+  .t2 .card { background: #fffdf9; border: 1px solid #ead9c3; }
+  .t2 .img { background: #f3e8d8; }
+  .t2 .meta { color: #8a7259; }
+  .t2 .pill { background: #fde8cc; color: #b45309; }
+
+  /* ── 3. Fresh Reuse (eco green) ── */
+  .t3 .mock { background: #f6fdf9; color: #0f3d2e; }
+  .t3 .eyebrow { color: #059669; }
+  .t3 .hero p { color: #3f6354; }
+  .t3 .btn { background: #059669; color: #fff; }
+  .t3 .card { background: #ffffff; border: 1px solid #d1fae5; box-shadow: 0 2px 6px rgba(5,150,105,.08); }
+  .t3 .img { background: #ecfdf5; }
+  .t3 .meta { color: #52796b; }
+  .t3 .pill { background: #d1fae5; color: #047857; }
+
+  /* ── 4. Modern Indigo (SaaS style) ── */
+  .t4 .mock { background: #f8fafc; color: #0f172a; }
+  .t4 .eyebrow { color: #6366f1; }
+  .t4 .hero p { color: #475569; }
+  .t4 .btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,.35); }
+  .t4 .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 12px rgba(15,23,42,.06); }
+  .t4 .img { background: linear-gradient(135deg, #eef2ff, #f5f3ff); }
+  .t4 .meta { color: #64748b; }
+  .t4 .pill { background: #e0e7ff; color: #4338ca; }
+
+  /* ── 5. Soft Slate (gentle dark) ── */
+  .t5 .mock { background: #1e293b; color: #f1f5f9; }
+  .t5 .eyebrow { color: #38bdf8; }
+  .t5 .hero p { color: #cbd5e1; }
+  .t5 .btn { background: #38bdf8; color: #0c1929; }
+  .t5 .card { background: #273449; border: 1px solid #334155; }
+  .t5 .img { background: #334155; }
+  .t5 .meta { color: #94a3b8; }
+  .t5 .pill { background: #0c4a6e; color: #7dd3fc; }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">PickItUp — 5 UI Theme Options</h1>
+<p class="page-sub">Same screens, five looks. Scroll and pick a favorite.</p>
+
+<!-- 1 -->
+<section class="theme t1">
+  <div class="theme-label">1 · Clean Market <small>White, minimal, classic marketplace (Craigslist-meets-Apple)</small></div>
+  <div class="mock">
+    <div class="hero">
+      <div class="eyebrow">Curbside Gold</div>
+      <h2>You can pick it up for only $5.00.</h2>
+      <p>These are items being thrown out as garbage, but we know it's not garbage to some. You aren't charged until you check the "I Picked It Up" box.</p>
+      <button class="btn">This garbage is located at this location. Address provided only after paying $5.00.</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="img">🛋️</div><div class="body"><h3>Grey Fabric Sofa</h3><div class="meta">Posted 2h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🪑</div><div class="body"><h3>Oak Dining Chair</h3><div class="meta">Posted 5h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🗄️</div><div class="body"><h3>Filing Cabinet</h3><div class="meta">Posted 1d ago · $10.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="theme t2">
+  <div class="theme-label">2 · Warm Curbside <small>Cream &amp; terracotta, friendly thrift/secondhand vibe</small></div>
+  <div class="mock">
+    <div class="hero">
+      <div class="eyebrow">Curbside Gold</div>
+      <h2>You can pick it up for only $5.00.</h2>
+      <p>These are items being thrown out as garbage, but we know it's not garbage to some. You aren't charged until you check the "I Picked It Up" box.</p>
+      <button class="btn">This garbage is located at this location. Address provided only after paying $5.00.</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="img">🛋️</div><div class="body"><h3>Grey Fabric Sofa</h3><div class="meta">Posted 2h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🪑</div><div class="body"><h3>Oak Dining Chair</h3><div class="meta">Posted 5h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🗄️</div><div class="body"><h3>Filing Cabinet</h3><div class="meta">Posted 1d ago · $10.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="theme t3">
+  <div class="theme-label">3 · Fresh Reuse <small>Eco green, "rescue it from the landfill" message</small></div>
+  <div class="mock">
+    <div class="hero">
+      <div class="eyebrow">Curbside Gold</div>
+      <h2>You can pick it up for only $5.00.</h2>
+      <p>These are items being thrown out as garbage, but we know it's not garbage to some. You aren't charged until you check the "I Picked It Up" box.</p>
+      <button class="btn">This garbage is located at this location. Address provided only after paying $5.00.</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="img">🛋️</div><div class="body"><h3>Grey Fabric Sofa</h3><div class="meta">Posted 2h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🪑</div><div class="body"><h3>Oak Dining Chair</h3><div class="meta">Posted 5h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🗄️</div><div class="body"><h3>Filing Cabinet</h3><div class="meta">Posted 1d ago · $10.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="theme t4">
+  <div class="theme-label">4 · Modern Indigo <small>Polished SaaS look, gradients &amp; soft shadows</small></div>
+  <div class="mock">
+    <div class="hero">
+      <div class="eyebrow">Curbside Gold</div>
+      <h2>You can pick it up for only $5.00.</h2>
+      <p>These are items being thrown out as garbage, but we know it's not garbage to some. You aren't charged until you check the "I Picked It Up" box.</p>
+      <button class="btn">This garbage is located at this location. Address provided only after paying $5.00.</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="img">🛋️</div><div class="body"><h3>Grey Fabric Sofa</h3><div class="meta">Posted 2h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🪑</div><div class="body"><h3>Oak Dining Chair</h3><div class="meta">Posted 5h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🗄️</div><div class="body"><h3>Filing Cabinet</h3><div class="meta">Posted 1d ago · $10.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="theme t5">
+  <div class="theme-label">5 · Soft Slate <small>Gentle dark mode — navy slate, not pure black</small></div>
+  <div class="mock">
+    <div class="hero">
+      <div class="eyebrow">Curbside Gold</div>
+      <h2>You can pick it up for only $5.00.</h2>
+      <p>These are items being thrown out as garbage, but we know it's not garbage to some. You aren't charged until you check the "I Picked It Up" box.</p>
+      <button class="btn">This garbage is located at this location. Address provided only after paying $5.00.</button>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="img">🛋️</div><div class="body"><h3>Grey Fabric Sofa</h3><div class="meta">Posted 2h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🪑</div><div class="body"><h3>Oak Dining Chair</h3><div class="meta">Posted 5h ago · $5.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+      <div class="card"><div class="img">🗄️</div><div class="body"><h3>Filing Cabinet</h3><div class="meta">Posted 1d ago · $10.00</div><span class="pill">Available</span><button class="btn">Reserve Pickup</button></div></div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

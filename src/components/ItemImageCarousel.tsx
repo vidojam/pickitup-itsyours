@@ -73,7 +73,7 @@ export function ItemImageCarousel({
   return (
     <section className="space-y-3">
       <div
-        className="relative touch-pan-y rounded-lg focus:outline-none focus:ring-2 focus:ring-black/70 focus:ring-offset-2"
+        className="relative touch-pan-y rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-400/80 focus:ring-offset-2 focus:ring-offset-slate-800"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onKeyDown={onKeyDown}
@@ -123,7 +123,7 @@ export function ItemImageCarousel({
                 type="button"
                 onClick={() => setSelectedIndex(index)}
                 className={`overflow-hidden rounded-lg border transition ${
-                  isSelected ? "border-black ring-1 ring-black" : "border-gray-300"
+                  isSelected ? "border-sky-400 ring-2 ring-sky-400" : "border-gray-300 opacity-70 hover:opacity-100"
                 }`}
                 aria-label={`View photo ${index + 1}`}
                 aria-pressed={isSelected}

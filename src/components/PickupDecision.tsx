@@ -10,12 +10,8 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const submitDecision = async () => {
-    if (!selection) {
-      setError("Select one checkbox option.");
-      return;
-    }
-
+  const submitDecision = async (decision: "picked" | "missing") => {
+    setSelection(decision);
     setSubmitting(true);
     setError(null);
 
@@ -25,7 +21,7 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ decision: selection }),
+        body: JSON.stringify({ decision }),
       });
 
       const data = (await response.json()) as { error?: string };
@@ -34,7 +30,7 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
       }
 
       setResult(
-        selection === "picked"
+        decision === "picked"
           ? `Success. Your card has been charged ${formatOfferAmount(amount)}.`
           : "Hold released. You were not charged.",
       );
@@ -49,31 +45,31 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
   return (
     <section className="space-y-4 rounded-lg border border-gray-300 p-4">
       <h3 className="text-lg font-semibold">On-Site Decision</h3>
-      <label className="flex items-start gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={selection === "picked"}
-          onChange={() => setSelection(selection === "picked" ? "" : "picked")}
-        />
-        <span>I picked it up. Charge me {formatOfferAmount(amount)}.</span>
-      </label>
-      <label className="flex items-start gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={selection === "missing"}
-          onChange={() => setSelection(selection === "missing" ? "" : "missing")}
-        />
-        <span>Item was not here. Release the hold.</span>
-      </label>
+      <p className="text-sm">
+        Picking it up charges your card {formatOfferAmount(amount)}. If nothing is there, the hold
+        is released and you pay nothing.
+      </p>
 
-      <button
-        type="button"
-        onClick={submitDecision}
-        disabled={submitting || !!result}
-        className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-      >
-        {submitting ? "Submitting..." : "Submit Decision"}
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          onClick={() => submitDecision("picked")}
+          disabled={submitting || !!result}
+          className="rounded-md bg-black px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {submitting && selection === "picked" ? "Submitting..." : "Garbage Picked Up"}
+        </button>
+        <button
+          type="button"
+          onClick={() => submitDecision("missing")}
+          disabled={submitting || !!result}
+          className="rounded-md border border-gray-300 px-4 py-3 text-sm font-semibold disabled:opacity-50"
+        >
+          {submitting && selection === "missing"
+            ? "Submitting..."
+            : "Garbage Item Not Picked Up at this location"}
+        </button>
+      </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {result ? (

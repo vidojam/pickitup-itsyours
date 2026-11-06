@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+/* Soft Slate theme: navy slate surfaces, sky-blue accents */
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
+  --background: #1e293b;
+  --foreground: #f1f5f9;
+  --surface: #273449;
+  --border: #334155;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-foreground: #0c1929;
 }
 
 @theme inline {
@@ -30,44 +36,51 @@ h6,
 span,
 li,
 dt,
-dd,
-button,
-input,
-select,
-textarea {
-  color: #ffffff;
+dd {
+  color: var(--foreground);
 }
 
 input,
 select,
-textarea,
-button {
-  background: #000000;
-  border-color: #ffffff;
+textarea {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #d4d4d4;
+  color: var(--muted);
 }
 
 :where(
   .text-gray-500,
   .text-gray-600,
-  .text-gray-700,
+  .text-gray-700
+) {
+  color: var(--muted) !important;
+}
+
+:where(
   .text-gray-900,
-  .text-red-600,
-  .text-green-700,
   .text-black
 ) {
-  color: #ffffff !important;
+  color: var(--foreground) !important;
+}
+
+:where(.text-red-600) {
+  color: #fca5a5 !important;
+}
+
+:where(.text-green-700) {
+  color: #6ee7b7 !important;
 }
 
 :where(
   .bg-white,
   .bg-gray-50
 ) {
-  background: #000000 !important;
+  background: var(--surface) !important;
 }
 
 :where(
@@ -75,7 +88,21 @@ textarea::placeholder {
   .border-gray-300,
   .border-dashed
 ) {
-  border-color: #ffffff !important;
+  border-color: var(--border) !important;
+}
+
+/* Primary action buttons: sky accent instead of black */
+:where(.bg-black):where(button, a) {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+:where(.bg-black):where(button, a):hover {
+  background: #7dd3fc !important;
+}
+
+:where(.bg-black):where(button, a) :where(span) {
+  color: var(--accent-foreground);
 }
 
 @keyframes carousel-fade-in {

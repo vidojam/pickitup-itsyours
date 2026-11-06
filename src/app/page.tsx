@@ -18,7 +18,7 @@ export default function Home() {
           href="/items"
           className="inline-flex rounded-md bg-black px-5 py-3 text-sm font-semibold text-white"
         >
-          View Available Items
+          This garbage is located at this location. Address provided only after paying $5.00.
         </Link>
       </div>
     </main>

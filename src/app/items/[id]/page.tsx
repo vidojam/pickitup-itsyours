@@ -1,7 +1,7 @@
 import { formatOfferAmount } from "@/lib/constants";
-import { ItemImageCarousel } from "@/components/ItemImageCarousel";
 import { UnlockFlow } from "@/components/UnlockFlow";
 import { getItemById } from "@/lib/store";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -25,10 +25,21 @@ export default async function ItemDetailPage({
         Back to Available Items
       </Link>
       <div className="grid gap-6 md:grid-cols-2">
-        <ItemImageCarousel itemLabel="Curbside item" imageUrls={item.imageUrls} />
+        <section className="space-y-3" aria-label="Item photos">
+          {item.imageUrls.map((imageUrl, index) => (
+            <Image
+              key={imageUrl}
+              src={imageUrl}
+              alt={`Curbside item photo ${index + 1}`}
+              width={900}
+              height={700}
+              className="h-72 w-full rounded-lg border border-gray-300 object-cover"
+            />
+          ))}
+        </section>
         <section className="space-y-4">
-          <h1 className="text-2xl font-bold">Sidewalk Item</h1>
-          <p className="text-base font-medium text-gray-900">Offer: {formatOfferAmount(item.offerAmount)}</p>
+          <h1 className="text-2xl font-bold">Sidewalk Garbage Items at the location</h1>
+          <p className="text-2xl font-bold text-gray-900">Offer: {formatOfferAmount(item.offerAmount)}</p>
           <p className="text-sm text-gray-700">Time Viewed: {item.timeViewed}</p>
           <p className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-3 text-sm">
             Pickup Location: {canUnlock ? "[Hidden until $5.00 authorization succeeds]" : "No longer available"}

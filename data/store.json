@@ -12,6 +12,21 @@
       "status": "available",
       "createdAt": "2026-03-03T15:20:00.000Z",
       "updatedAt": "2026-03-03T15:20:00.000Z"
+    },
+    {
+      "id": "eef53bb1-6c2a-4e85-8075-f9cda0bc9ea9",
+      "imageUrls": [
+        "/uploads/1d8ef59e-8b21-4b3c-8e79-8e187dea7d6b.jpg",
+        "/uploads/45f696dd-173b-416b-bafe-9a990cc24bf8.jpg",
+        "/uploads/6c31001a-a028-420e-81a9-91c64f5cba8b.jpg"
+      ],
+      "offerAmount": 500,
+      "timeViewed": "2026-04-23T17:54",
+      "location": "10671 S 228th ln, Boca Raton, Fl 33428",
+      "category": "Furniture",
+      "status": "available",
+      "createdAt": "2026-04-23T21:56:01.078Z",
+      "updatedAt": "2026-04-23T21:56:01.078Z"
     }
   ],
   "reservations": []
