@@ -1,4 +1,5 @@
 import { formatOfferAmount } from "@/lib/constants";
+import { ItemsFeed } from "@/components/ItemsFeed";
 import { UnlockFlow } from "@/components/UnlockFlow";
 import { getItemById } from "@/lib/store";
 import Image from "next/image";
@@ -53,6 +54,10 @@ export default async function ItemDetailPage({
           )}
         </section>
       </div>
+      <section className="space-y-3 border-t border-gray-200 pt-6" aria-label="Other available locations">
+        <h2 className="text-xl font-bold">Other Available Locations</h2>
+        <ItemsFeed excludeId={item.id} />
+      </section>
     </main>
   );
 }

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Item } from "@/lib/types";
 
-export function ItemsFeed() {
+export function ItemsFeed({ limit, excludeId }: { limit?: number; excludeId?: string } = {}) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +47,11 @@ export function ItemsFeed() {
     return <p className="text-sm text-red-600">{error}</p>;
   }
 
-  if (items.length === 0) {
+  const visibleItems = items
+    .filter((item) => item.id !== excludeId)
+    .slice(0, limit ?? items.length);
+
+  if (visibleItems.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-600">
         No available items right now.
@@ -57,7 +61,7 @@ export function ItemsFeed() {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <article key={item.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white">
           <Image
             src={item.imageUrls[0]}

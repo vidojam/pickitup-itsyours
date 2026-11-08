@@ -105,6 +105,13 @@ textarea::placeholder {
   color: var(--accent-foreground);
 }
 
+/* Terms of Use text uses the accent blue */
+.terms-box h2,
+.terms-box p,
+.accent-text p {
+  color: var(--accent);
+}
+
 @keyframes carousel-fade-in {
   from {
     opacity: 0;

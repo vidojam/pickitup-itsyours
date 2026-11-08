@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { emitInventoryChange } from "@/lib/inventory-events";
 import { DEFAULT_OFFER_AMOUNT } from "@/lib/constants";
@@ -6,13 +6,47 @@ import { AppStore, Item, ItemCategory, Reservation } from "@/lib/types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "store.json");
+const LOCK_FILE = `${DATA_FILE}.lock`;
+const LOCK_TIMEOUT_MS = 5000;
+const LOCK_STALE_MS = 10000;
+const LOCK_RETRY_MS = 25;
 
 const EMPTY_STORE: AppStore = {
   items: [],
   reservations: [],
 };
 
-let queue: Promise<void> = Promise.resolve();
+let queue: Promise<unknown> = Promise.resolve();
+
+// Cross-process advisory lock: "wx" fails if the lock file already exists.
+async function acquireLock(): Promise<void> {
+  const start = Date.now();
+  for (;;) {
+    try {
+      const handle = await open(LOCK_FILE, "wx");
+      await handle.close();
+      return;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+      // Break locks left behind by a crashed process.
+      const info = await stat(LOCK_FILE).catch(() => null);
+      if (info && Date.now() - info.mtimeMs > LOCK_STALE_MS) {
+        await rm(LOCK_FILE, { force: true });
+        continue;
+      }
+      if (Date.now() - start > LOCK_TIMEOUT_MS) {
+        throw new Error("Timed out waiting for store lock.");
+      }
+      await new Promise((resolve) => setTimeout(resolve, LOCK_RETRY_MS));
+    }
+  }
+}
+
+async function releaseLock(): Promise<void> {
+  await rm(LOCK_FILE, { force: true });
+}
 
 function normalizeItem(item: unknown): Item {
   const rawItem = item as Record<string, unknown>;
@@ -60,26 +94,34 @@ export async function readStore(): Promise<AppStore> {
 }
 
 async function writeStore(store: AppStore) {
-  await writeFile(DATA_FILE, JSON.stringify(store, null, 2), "utf8");
+  // Write to a temp file then rename so a crash can't leave a half-written store.json.
+  const tmpFile = `${DATA_FILE}.${process.pid}.tmp`;
+  await writeFile(tmpFile, JSON.stringify(store, null, 2), "utf8");
+  await rename(tmpFile, DATA_FILE);
 }
 
 export async function withStore<T>(
   mutator: (store: AppStore) => Promise<{ result: T; changed?: boolean }> | { result: T; changed?: boolean },
 ): Promise<T> {
-  let result!: T;
-
-  queue = queue.then(async () => {
-    const store = await readStore();
-    const output = await mutator(store);
-    result = output.result;
-    if (output.changed) {
-      await writeStore(store);
-      emitInventoryChange();
+  const run = async (): Promise<T> => {
+    await acquireLock();
+    try {
+      const store = await readStore();
+      const output = await mutator(store);
+      if (output.changed) {
+        await writeStore(store);
+        emitInventoryChange();
+      }
+      return output.result;
+    } finally {
+      await releaseLock();
     }
-  });
+  };
 
-  await queue;
-  return result;
+  // Chain regardless of prior failures so one error doesn't poison the queue.
+  const resultPromise = queue.then(run, run);
+  queue = resultPromise.catch(() => undefined);
+  return resultPromise;
 }
 
 export async function listItems(status?: Item["status"]) {

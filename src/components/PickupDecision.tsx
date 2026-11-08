@@ -57,7 +57,7 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
           disabled={submitting || !!result}
           className="rounded-md bg-black px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {submitting && selection === "picked" ? "Submitting..." : "Garbage Picked Up"}
+          {submitting && selection === "picked" ? "Submitting..." : "I Picked It Up"}
         </button>
         <button
           type="button"
@@ -67,7 +67,7 @@ export function PickupDecision({ reservationId, amount }: { reservationId: strin
         >
           {submitting && selection === "missing"
             ? "Submitting..."
-            : "Garbage Item Not Picked Up at this location"}
+            : "Not Picked Up"}
         </button>
       </div>
 
