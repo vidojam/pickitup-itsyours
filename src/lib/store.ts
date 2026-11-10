@@ -255,3 +255,34 @@ export async function decideReservation(input: {
     };
   });
 }
+
+// Releases the hold and puts the item back on the feed (e.g., expired authorization).
+export async function relistReservation(reservationId: string) {
+  return withStore(async (store) => {
+    const reservation = store.reservations.find((entry) => entry.id === reservationId);
+    if (!reservation || reservation.status !== "authorized") {
+      return { result: null };
+    }
+
+    const item = store.items.find((entry) => entry.id === reservation.itemId);
+    if (!item) {
+      return { result: null };
+    }
+
+    const now = new Date().toISOString();
+    reservation.status = "released";
+    reservation.updatedAt = now;
+
+    item.status = "available";
+    item.activeReservationId = undefined;
+    item.updatedAt = now;
+
+    return {
+      result: {
+        reservation,
+        item,
+      },
+      changed: true,
+    };
+  });
+}

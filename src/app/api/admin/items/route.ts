@@ -1,5 +1,5 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { saveAdminPhoto } from "@/lib/admin-photo-storage";
+import { PhotoValidationError, saveAdminPhoto } from "@/lib/admin-photo-storage";
 import { OFFER_AMOUNTS } from "@/lib/constants";
 import { createItem, listItems } from "@/lib/store";
 import { ItemCategory } from "@/lib/types";
@@ -50,7 +50,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
   }
 
-  const savedImageUrls = await Promise.all(files.map((file) => saveAdminPhoto(file)));
+  let savedImageUrls: string[];
+  try {
+    savedImageUrls = await Promise.all(files.map((file) => saveAdminPhoto(file)));
+  } catch (caught) {
+    if (caught instanceof PhotoValidationError) {
+      return NextResponse.json({ error: caught.message }, { status: 400 });
+    }
+    throw caught;
+  }
+
   const imageUrls = [...uploadedImageUrls, ...savedImageUrls];
   const item = await createItem({
     imageUrls,

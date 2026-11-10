@@ -1,5 +1,5 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { saveAdminPhoto } from "@/lib/admin-photo-storage";
+import { PhotoValidationError, saveAdminPhoto } from "@/lib/admin-photo-storage";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -14,6 +14,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Photo is required." }, { status: 400 });
   }
 
-  const url = await saveAdminPhoto(file);
-  return NextResponse.json({ url });
+  try {
+    const url = await saveAdminPhoto(file);
+    return NextResponse.json({ url });
+  } catch (caught) {
+    if (caught instanceof PhotoValidationError) {
+      return NextResponse.json({ error: caught.message }, { status: 400 });
+    }
+    throw caught;
+  }
 }

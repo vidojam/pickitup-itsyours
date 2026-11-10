@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminToken } from "@/lib/admin-auth";
+import { verifySessionToken } from "@/lib/admin-session-token";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/mobile-login")) {
@@ -9,7 +9,9 @@ export function middleware(request: NextRequest) {
   }
 
   const cookie = request.cookies.get("pickitup_admin")?.value;
-  if (cookie !== getAdminToken()) {
+  // Stateless check (signature + expiry) only — edge runtime has no fs access.
+  // Revocation is enforced server-side via isAdminAuthenticated in API routes.
+  if (!cookie || !(await verifySessionToken(cookie))) {
     const loginUrl = new URL("/admin/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

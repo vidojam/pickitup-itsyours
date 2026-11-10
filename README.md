@@ -17,10 +17,15 @@ Mobile-responsive PWA for curbside item listings with:
 ```bash
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+# From the Stripe dashboard webhook endpoint (or `stripe listen` locally)
+STRIPE_WEBHOOK_SECRET=whsec_...
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your_admin_password
+# Generate with: node scripts/hash-admin-password.mjs <password>
+ADMIN_PASSWORD_HASH=scrypt:...:...
 ADMIN_SESSION_SECRET=long_random_secret
 ```
+
+`ADMIN_PASSWORD` (plaintext) is still supported as a fallback, but `ADMIN_PASSWORD_HASH` is preferred.
 
 ## Run Locally
 
