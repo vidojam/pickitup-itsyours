@@ -27,6 +27,12 @@ cookies.txt
 data/*.lock
 data/*.tmp
 data/admin-sessions.json
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Claude Code
+.claude/
 
 # debug
 npm-debug.log*

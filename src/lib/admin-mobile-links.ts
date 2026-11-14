@@ -1,69 +1,32 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { createHash, randomBytes } from "node:crypto";
+import { getDb } from "@/lib/db";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DATA_FILE = path.join(DATA_DIR, "admin-mobile-links.json");
-const LINK_LIFETIME_MS = 10 * 60 * 1000;
+const LINK_LIFETIME_MS = 10 * 60 * 1000; // 10 minutes
 
-type StoredLink = {
-  token: string;
-  expiresAt: string;
-};
-
-let queue: Promise<void> = Promise.resolve();
-
-async function ensureLinksFile() {
-  await mkdir(DATA_DIR, { recursive: true });
-  try {
-    await readFile(DATA_FILE, "utf8");
-  } catch {
-    await writeFile(DATA_FILE, JSON.stringify([], null, 2), "utf8");
-  }
+// Raw tokens never touch disk — only their SHA-256 hex digest is stored.
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }
 
-async function readLinks(): Promise<StoredLink[]> {
-  await ensureLinksFile();
-  const raw = await readFile(DATA_FILE, "utf8");
-  return JSON.parse(raw) as StoredLink[];
-}
-
-async function writeLinks(links: StoredLink[]) {
-  await writeFile(DATA_FILE, JSON.stringify(links, null, 2), "utf8");
-}
-
-export async function createAdminMobileLink() {
-  const token = crypto.randomUUID();
+export async function createAdminMobileLink(): Promise<{ token: string; expiresAt: string }> {
+  const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + LINK_LIFETIME_MS).toISOString();
 
-  queue = queue.then(async () => {
-    const links = await readLinks();
-    const activeLinks = links.filter((entry) => new Date(entry.expiresAt).getTime() > Date.now());
-    activeLinks.push({ token, expiresAt });
-    await writeLinks(activeLinks);
-  });
+  const db = getDb();
+  db.prepare("DELETE FROM admin_mobile_links WHERE expiresAt <= ?").run(new Date().toISOString());
+  db.prepare("INSERT INTO admin_mobile_links (tokenHash, expiresAt) VALUES (?, ?)").run(
+    hashToken(token),
+    expiresAt,
+  );
 
-  await queue;
   return { token, expiresAt };
 }
 
-export async function consumeAdminMobileLink(token: string) {
-  let isValid = false;
-
-  queue = queue.then(async () => {
-    const links = await readLinks();
-    const activeLinks = links.filter((entry) => new Date(entry.expiresAt).getTime() > Date.now());
-    const index = activeLinks.findIndex((entry) => entry.token === token);
-
-    if (index === -1) {
-      await writeLinks(activeLinks);
-      return;
-    }
-
-    activeLinks.splice(index, 1);
-    isValid = true;
-    await writeLinks(activeLinks);
-  });
-
-  await queue;
-  return isValid;
+export async function consumeAdminMobileLink(token: string): Promise<boolean> {
+  const db = getDb();
+  // Single atomic DELETE — no TOCTOU between check and consume.
+  const result = db
+    .prepare("DELETE FROM admin_mobile_links WHERE tokenHash = ? AND expiresAt > ?")
+    .run(hashToken(token), new Date().toISOString());
+  return result.changes === 1;
 }

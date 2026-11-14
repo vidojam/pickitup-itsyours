@@ -1,7 +1,6 @@
 import { createHash, scryptSync, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
-import { verifySessionToken } from "./admin-session-token";
-import { isAdminSessionActive } from "./admin-sessions";
+import { isAdminSessionValid } from "./admin-sessions";
 
 export const ADMIN_COOKIE = "pickitup_admin";
 
@@ -53,14 +52,6 @@ export function verifyAdminCredentials(username: string, password: string) {
 export async function isAdminAuthenticated() {
   const jar = await cookies();
   const value = jar.get(ADMIN_COOKIE)?.value;
-  if (!value) {
-    return false;
-  }
-
-  const session = await verifySessionToken(value);
-  if (!session) {
-    return false;
-  }
-
-  return isAdminSessionActive(session.sessionId);
+  if (!value) return false;
+  return isAdminSessionValid(value);
 }

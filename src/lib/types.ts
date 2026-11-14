@@ -16,7 +16,7 @@ export interface Item {
   activeReservationId?: string;
 }
 
-export type ReservationStatus = "authorized" | "charged" | "released";
+export type ReservationStatus = "authorized" | "charged" | "released" | "refunded";
 
 export interface Reservation {
   id: string;

@@ -36,6 +36,12 @@ export async function POST(
   });
 
   if (!result) {
+    // If a "picked" capture succeeded but the store update failed, refund immediately
+    // rather than leaving an untracked charge. The webhook may also reconcile this, but
+    // an explicit refund is the safer recovery path.
+    if (body.decision === "picked") {
+      await stripe.refunds.create({ payment_intent: reservation.paymentIntentId }).catch(() => null);
+    }
     return NextResponse.json({ error: "Unable to finalize reservation." }, { status: 409 });
   }
 
