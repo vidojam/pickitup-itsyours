@@ -34,6 +34,9 @@ data/*.db-wal
 # Claude Code
 .claude/
 
+# User-uploaded photos (runtime content, not source code)
+public/uploads/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

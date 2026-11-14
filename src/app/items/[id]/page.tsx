@@ -1,8 +1,8 @@
 import { formatOfferAmount } from "@/lib/constants";
+import { ItemImageCarousel } from "@/components/ItemImageCarousel";
 import { ItemsFeed } from "@/components/ItemsFeed";
 import { UnlockFlow } from "@/components/UnlockFlow";
 import { getItemById } from "@/lib/store";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -26,18 +26,7 @@ export default async function ItemDetailPage({
         Back to Available Items
       </Link>
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="space-y-3" aria-label="Item photos">
-          {item.imageUrls.map((imageUrl, index) => (
-            <Image
-              key={imageUrl}
-              src={imageUrl}
-              alt={`Curbside item photo ${index + 1}`}
-              width={900}
-              height={700}
-              className="h-72 w-full rounded-lg border border-gray-300 object-cover"
-            />
-          ))}
-        </section>
+        <ItemImageCarousel itemLabel={item.category} imageUrls={item.imageUrls} />
         <section className="space-y-4">
           <h1 className="text-2xl font-bold">Sidewalk Garbage Items at the location</h1>
           <p className="text-2xl font-bold text-gray-900">Offer: {formatOfferAmount(item.offerAmount)}</p>

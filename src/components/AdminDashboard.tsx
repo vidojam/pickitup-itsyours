@@ -30,8 +30,11 @@ export function AdminDashboard() {
   const [photoPreviews, setPhotoPreviews] = useState<(string | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
   const [uploadedPhotoUrls, setUploadedPhotoUrls] = useState<(string | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
   const [uploadingSlots, setUploadingSlots] = useState<boolean[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => false));
+  const [uploadErrors, setUploadErrors] = useState<(string | null)[]>(() => Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
   const photoInputRefs = useRef<Array<HTMLInputElement | null>>(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
   const uploadSequenceRef = useRef<number[]>(Array.from({ length: PHOTO_SLOT_COUNT }, () => 0));
+  const photoPreviewsRef = useRef(photoPreviews);
+  photoPreviewsRef.current = photoPreviews;
 
   const redirectToLogin = () => {
     if (typeof window !== "undefined") {
@@ -91,13 +94,13 @@ export function AdminDashboard() {
 
   useEffect(() => {
     return () => {
-      for (const preview of photoPreviews) {
-        if (preview) {
+      for (const preview of photoPreviewsRef.current) {
+        if (preview?.startsWith("blob:")) {
           URL.revokeObjectURL(preview);
         }
       }
     };
-  }, [photoPreviews]);
+  }, []);
 
   const setPreviewForSlot = (slotIndex: number, nextPreview: string | null) => {
     setPhotoPreviews((current) => {
@@ -153,7 +156,7 @@ export function AdminDashboard() {
   const resetPreviews = () => {
     setPhotoPreviews((current) => {
       for (const preview of current) {
-        if (preview) {
+        if (preview?.startsWith("blob:")) {
           URL.revokeObjectURL(preview);
         }
       }
@@ -162,6 +165,7 @@ export function AdminDashboard() {
     });
     setUploadedPhotoUrls(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
     setUploadingSlots(Array.from({ length: PHOTO_SLOT_COUNT }, () => false));
+    setUploadErrors(Array.from({ length: PHOTO_SLOT_COUNT }, () => null));
 
     for (const input of photoInputRefs.current) {
       if (input) {
@@ -174,6 +178,7 @@ export function AdminDashboard() {
     setPreviewForSlot(slotIndex, null);
     setUploadedUrlForSlot(slotIndex, null);
     setUploadingForSlot(slotIndex, false);
+    setUploadErrors((current) => { const next = [...current]; next[slotIndex] = null; return next; });
 
     const input = photoInputRefs.current[slotIndex];
     if (input) {
@@ -225,6 +230,7 @@ export function AdminDashboard() {
     setPreviewForSlot(slotIndex, localPreview);
     setUploadedUrlForSlot(slotIndex, null);
     setUploadingForSlot(slotIndex, true);
+    setUploadErrors((current) => { const next = [...current]; next[slotIndex] = null; return next; });
     setError(null);
 
     uploadSequenceRef.current[slotIndex] += 1;
@@ -241,7 +247,7 @@ export function AdminDashboard() {
       if (uploadSequenceRef.current[slotIndex] === requestId) {
         const message = caught instanceof Error ? caught.message : "Unable to upload photo.";
         if (message !== "Unauthorized") {
-          setError(message);
+          setUploadErrors((current) => { const next = [...current]; next[slotIndex] = "Upload failed — tap to try again."; return next; });
         }
       }
     } finally {
@@ -286,6 +292,7 @@ export function AdminDashboard() {
 
   const onPublish = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formEl = event.currentTarget;
     setSubmitting(true);
     setError(null);
 
@@ -299,7 +306,7 @@ export function AdminDashboard() {
         throw new Error("Select at least 1 photo before publishing.");
       }
 
-      const form = new FormData(event.currentTarget);
+      const form = new FormData(formEl);
       form.delete("photos");
       form.delete("imageUrls");
       for (const url of uploadedUrls) {
@@ -321,7 +328,7 @@ export function AdminDashboard() {
         throw new Error(data.error ?? "Unable to publish item.");
       }
 
-      event.currentTarget.reset();
+      formEl.reset();
       setLocation("");
       setLocationStatus(null);
       resetPreviews();
@@ -476,6 +483,7 @@ export function AdminDashboard() {
                 <p className="text-xs text-gray-600">Tap the button to open the camera or photo library.</p>
                 {uploadingSlots[index] ? <p className="text-xs text-blue-700">Uploading photo...</p> : null}
                 {!uploadingSlots[index] && uploadedPhotoUrls[index] ? <p className="text-xs text-green-700">Uploaded</p> : null}
+                {!uploadingSlots[index] && uploadErrors[index] ? <p className="text-xs text-red-600">{uploadErrors[index]}</p> : null}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
