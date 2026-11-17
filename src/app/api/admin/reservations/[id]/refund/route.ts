@@ -1,10 +1,12 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { auditLog } from "@/lib/audit-log";
+import { getClientKey } from "@/lib/login-protection";
 import { getReservationById, refundReservation } from "@/lib/store";
 import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   if (!(await isAdminAuthenticated())) {
@@ -26,6 +28,11 @@ export async function POST(
   }
 
   await getStripe().refunds.create({ payment_intent: reservation.paymentIntentId });
+  auditLog("admin.refund", getClientKey(request), {
+    reservationId: id,
+    paymentIntentId: reservation.paymentIntentId,
+    amount: reservation.amount,
+  });
 
   const result = await refundReservation(id);
   if (!result) {

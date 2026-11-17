@@ -9,12 +9,23 @@ const SESSION_TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/mobile-login")) {
+  // Login/logout routes are intentionally public.
+  if (
+    pathname.startsWith("/admin/login") ||
+    pathname.startsWith("/admin/mobile-login") ||
+    pathname === "/api/admin/login" ||
+    pathname === "/api/admin/logout"
+  ) {
     return NextResponse.next();
   }
 
   const cookie = request.cookies.get("pickitup_admin")?.value;
-  if (!cookie || !SESSION_TOKEN_RE.test(cookie)) {
+  const valid = !!cookie && SESSION_TOKEN_RE.test(cookie);
+
+  if (!valid) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
@@ -22,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

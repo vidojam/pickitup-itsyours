@@ -58,5 +58,13 @@ function applySchema(db: Database.Database): void {
       tokenHash TEXT PRIMARY KEY,
       expiresAt TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts      TEXT NOT NULL,
+      action  TEXT NOT NULL,
+      ip      TEXT,
+      details TEXT NOT NULL DEFAULT '{}'
+    );
   `);
 }

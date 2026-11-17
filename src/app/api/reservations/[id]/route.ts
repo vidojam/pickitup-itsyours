@@ -11,5 +11,10 @@ export async function GET(
     return NextResponse.json({ error: "Reservation not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ details });
+  return NextResponse.json({
+    details: {
+      reservation: details.reservation,
+      item: { ...details.item, location: "", address: undefined },
+    },
+  });
 }

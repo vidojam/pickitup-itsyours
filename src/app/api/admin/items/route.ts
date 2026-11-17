@@ -1,11 +1,15 @@
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { PhotoValidationError, saveAdminPhoto } from "@/lib/admin-photo-storage";
+import { auditLog } from "@/lib/audit-log";
 import { OFFER_AMOUNTS } from "@/lib/constants";
+import { getClientKey } from "@/lib/login-protection";
 import { createItem, listItems } from "@/lib/store";
 import { ItemCategory } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 const ALLOWED_CATEGORIES: ItemCategory[] = ["Furniture", "Appliance", "Misc"];
+const MAX_TIME_VIEWED_LEN = 100;
+const MAX_LOCATION_LEN = 500;
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -46,6 +50,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
 
+  if (timeViewed.length > MAX_TIME_VIEWED_LEN || location.length > MAX_LOCATION_LEN) {
+    return NextResponse.json({ error: "Field value too long." }, { status: 400 });
+  }
+
   if (!ALLOWED_CATEGORIES.includes(category as ItemCategory)) {
     return NextResponse.json({ error: "Invalid category." }, { status: 400 });
   }
@@ -67,6 +75,12 @@ export async function POST(request: Request) {
     timeViewed,
     location,
     category: category as ItemCategory,
+  });
+
+  auditLog("admin.item_created", getClientKey(request), {
+    itemId: item.id,
+    category,
+    offerAmount,
   });
 
   return NextResponse.json({ item });

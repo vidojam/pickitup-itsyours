@@ -1,3 +1,5 @@
+import { auditLog } from "@/lib/audit-log";
+import { getClientKey } from "@/lib/login-protection";
 import { decideReservation, getReservationById } from "@/lib/store";
 import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
@@ -44,6 +46,13 @@ export async function POST(
     }
     return NextResponse.json({ error: "Unable to finalize reservation." }, { status: 409 });
   }
+
+  auditLog("payment.decision", getClientKey(request), {
+    reservationId: id,
+    itemId: reservation.itemId,
+    decision: body.decision,
+    paymentIntentId: reservation.paymentIntentId,
+  });
 
   return NextResponse.json({
     status: result.reservation.status,

@@ -1,3 +1,4 @@
+import { auditLog } from "@/lib/audit-log";
 import {
   createReservation,
   decideReservation,
@@ -40,7 +41,10 @@ async function handleAuthorized(intent: Stripe.PaymentIntent) {
 
   if (!created && !(await findReservationByIntent(intent.id))) {
     await getStripe().paymentIntents.cancel(intent.id).catch(() => null);
+    return;
   }
+
+  auditLog("webhook.authorized", null, { paymentIntentId: intent.id, itemId });
 }
 
 async function handleFinalized(intent: Stripe.PaymentIntent, decision: "picked" | "missing") {
@@ -49,6 +53,11 @@ async function handleFinalized(intent: Stripe.PaymentIntent, decision: "picked" 
     return;
   }
   await decideReservation({ reservationId: reservation.id, decision });
+  auditLog("webhook.finalized", null, {
+    paymentIntentId: intent.id,
+    reservationId: reservation.id,
+    decision,
+  });
 }
 
 async function handleCanceled(intent: Stripe.PaymentIntent) {
@@ -58,6 +67,10 @@ async function handleCanceled(intent: Stripe.PaymentIntent) {
     if (reservation) {
       await relistReservation(reservation.id);
     }
+    auditLog("webhook.canceled", null, {
+      paymentIntentId: intent.id,
+      reason: intent.cancellation_reason,
+    });
     return;
   }
   await handleFinalized(intent, "missing");

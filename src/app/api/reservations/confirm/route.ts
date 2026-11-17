@@ -1,3 +1,5 @@
+import { auditLog } from "@/lib/audit-log";
+import { getClientKey } from "@/lib/login-protection";
 import { createReservation, findReservationByIntent, getItemById } from "@/lib/store";
 import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
@@ -35,6 +37,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payment does not match this item." }, { status: 409 });
   }
 
+  const ip = getClientKey(request);
+
   // Idempotent: the Stripe webhook may have already created this reservation.
   const existing = await findReservationByIntent(body.paymentIntentId);
   if (existing && existing.itemId === item.id) {
@@ -67,6 +71,13 @@ export async function POST(request: Request) {
     await stripe.paymentIntents.cancel(body.paymentIntentId).catch(() => null);
     return NextResponse.json({ error: "Item is no longer available." }, { status: 409 });
   }
+
+  auditLog("payment.reserved", ip, {
+    reservationId: created.reservation.id,
+    itemId: item.id,
+    paymentIntentId: body.paymentIntentId,
+    amount: intent.amount,
+  });
 
   return NextResponse.json({
     reservationId: created.reservation.id,
